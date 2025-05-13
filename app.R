@@ -42,7 +42,7 @@ ui <- fluidPage(
                        options = list(
                          placeholder = "-Select an option-",
                          onInitialize = I("function() { this.setValue(''); }")
-                       )
+                        )
                        )
         
       ),
@@ -51,11 +51,10 @@ ui <- fluidPage(
                #create category pie chart
                ),
         column(6,
-               #create nativeness pie chart
+               #create native pie chart
                )
       )
-    ),
-    tabPanel("Species Search")
+    )
   )
 )
 
