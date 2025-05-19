@@ -3,6 +3,7 @@ library(bslib)
 library(ggplot2)
 library(shinythemes)
 library(leaflet)
+library(DT)
 
 #read in park and species tables
 parks <- read.csv("parks.csv", header=TRUE)
@@ -32,8 +33,16 @@ ui <- fluidPage(
           fluidRow(
             leafletOutput("map")
           ),
-          fluidRow(
-            #print data
+          conditionalPanel(
+            condition = 'input.view == "Data"',
+            dataTableOutput("data_table")
+          ),
+          conditionalPanel(
+            condition = 'input.view == "Graphs"',
+            column(6,
+                   plotOutput("conservation_category")),
+            column(6,
+                   plotOutput("conservation_nativeness"))
           )
         )
       )
@@ -72,11 +81,27 @@ server <- function(input, output) {
         data = parks,
         lng = ~Longitude,
         lat = ~Latitude,
+        #layerID = ~Park.Name,
         radius = 2,
         color = "darkgreen",
         fillOpacity = 0.7,
-        popup = ~paste("Park: ", Park.Name)
+        popup = ~paste(Park.Name)
       )
+  
+  })
+
+  observeEvent(input$map_marker_click, {
+    park_click <- input$map_marker_click
+    park_name <- park_click[3]
+    
+    #species_datatable <- species |> 
+      #filter(Conservation.Status %in% input$status) |> 
+      #filter(Park.Name == park_name)
+    
+    output$data_table <- renderDataTable({
+      datatable(species)
+    })
+    
   })
 
 }
