@@ -29,7 +29,7 @@ ui <- fluidPage(
           selectInput("view",
                       "Select viewing option",
                       choices = c("Data", "Graphs"),
-                      selected = "Data")
+                      selected = "Graphs")
         ),
         mainPanel(
           fluidRow(
@@ -112,9 +112,14 @@ server <- function(input, output) {
     if (input$view == "Data") {
       output$data_table <- renderDataTable({
         datatable(species_filtered)})
-    } else {
+    }
+    if (input$view == "Graphs"){
       output$conservation_category <- renderPlot({
-        ggplot(species)
+        ggplot(category, aes(x = "", y = count, fill = Category)) +
+          geom_bar(stat = "identity", aes(fill = Category)) +
+          coord_polar(theta = "y") +
+          labs(title = "Category") +
+          ylab("") + xlab("")
       })
     }
   })
