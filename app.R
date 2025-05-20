@@ -26,26 +26,16 @@ ui <- fluidPage(
                              choices = c("Species of Concern", "Threatened", "Endangered",
                                          "Extinct", "In Recovery"),
                              selected = "Species of Concern"),
-          selectInput("view",
-                      "Select viewing option",
-                      choices = c("Data", "Graphs"),
-                      selected = "Graphs")
         ),
         mainPanel(
           fluidRow(
             leafletOutput("map")
           ),
-          conditionalPanel(
-            condition = 'input.view == "Data"',
+          fluidRow(
             dataTableOutput("data_table")
           ),
-          conditionalPanel(
-            condition = 'input.view == "Graphs"',
-            column(6,
-                   plotOutput("conservation_category")),
-            column(6,
-                   plotOutput("conservation_nativeness"))
-          )
+          fluidRow(
+            plotOutput("conservation_category"))
         )
       )
     ),
@@ -103,25 +93,17 @@ server <- function(input, output) {
     category <- species_filtered |> 
       group_by(Category) |> 
       summarize(count = n())
-    
-    order <- species_filtered |> 
-      group_by(Order) |> 
-      summarize(count = n())
 
-    
-    if (input$view == "Data") {
-      output$data_table <- renderDataTable({
-        datatable(species_filtered)})
-    }
-    if (input$view == "Graphs"){
-      output$conservation_category <- renderPlot({
-        ggplot(category, aes(x = "", y = count, fill = Category)) +
-          geom_bar(stat = "identity", aes(fill = Category)) +
-          coord_polar(theta = "y") +
-          labs(title = "Category") +
-          ylab("") + xlab("")
-      })
-    }
+    output$data_table <- renderDataTable({
+      datatable(species_filtered)})
+
+    output$conservation_category <- renderPlot({
+      ggplot(category, aes(x = "", y = count, fill = Category)) +
+        geom_bar(stat = "identity", aes(fill = Category)) +
+        coord_polar(theta = "y") +
+        labs(title = "Category") +
+        ylab("") + xlab("")
+    })
   })
 
 }
