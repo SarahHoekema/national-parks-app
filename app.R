@@ -4,6 +4,8 @@ library(ggplot2)
 library(shinythemes)
 library(leaflet)
 library(DT)
+library(tidyr)
+library(dplyr)
 
 #read in park and species tables
 parks <- read.csv("parks.csv", header=TRUE)
@@ -81,27 +83,40 @@ server <- function(input, output) {
         data = parks,
         lng = ~Longitude,
         lat = ~Latitude,
-        #layerID = ~Park.Name,
-        radius = 2,
+        layerId = ~Park.Name,
+        radius = 4,
         color = "darkgreen",
         fillOpacity = 0.7,
         popup = ~paste(Park.Name)
       )
-  
   })
-
-  observeEvent(input$map_marker_click, {
+  
+  observeEvent({input$map_marker_click}, {
     park_click <- input$map_marker_click
-    park_name <- park_click[3]
+    park_name <- park_click$id
     
-    #species_datatable <- species |> 
-      #filter(Conservation.Status %in% input$status) |> 
-      #filter(Park.Name == park_name)
+    species_filtered <- species |> 
+      filter(Park.Name == park_name) |> 
+      filter(Conservation.Status %in% input$status) |> 
+      select(Common.Names, Category, Order, Conservation.Status)
     
-    output$data_table <- renderDataTable({
-      datatable(species)
-    })
+    category <- species_filtered |> 
+      group_by(Category) |> 
+      summarize(count = n())
     
+    order <- species_filtered |> 
+      group_by(Order) |> 
+      summarize(count = n())
+
+    
+    if (input$view == "Data") {
+      output$data_table <- renderDataTable({
+        datatable(species_filtered)})
+    } else {
+      output$conservation_category <- renderPlot({
+        ggplot(species)
+      })
+    }
   })
 
 }
