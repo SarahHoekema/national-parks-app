@@ -105,7 +105,7 @@ server <- function(input, output) {
     park_click <- input$map_marker_click
     park_name <- park_click$id
     
-    #filteres species datagrame
+    #filters species dataframe
     species_filtered_map <- species |> 
       filter(Park.Name == park_name) |> 
       filter(Conservation.Status %in% input$status) |> 
@@ -116,9 +116,11 @@ server <- function(input, output) {
       group_by(Category) |> 
       summarize(count = n())
 
+    #outputs data table of selected species
     output$data_table <- renderDataTable({
       datatable(species_filtered_map)})
 
+    #plots animal categories pie chart for conservation map
     output$conservation_category <- renderPlot({
       ggplot(map_category, aes(x = "", y = count, fill = Category)) +
         geom_bar(stat = "identity", aes(fill = Category)) +
@@ -128,38 +130,47 @@ server <- function(input, output) {
     })
   })
   
+  #shows output if park is selected
   observeEvent({input$park_choice_input}, {
     req(input$park_choice_input)
     
+    #filter park dataframe by selected park
     park_filtered <- parks |> 
       filter(Park.Name == input$park_choice_input)
     
+    #print park code
     output$park_code <- renderPrint({
       cat(paste("Park code: ", park_filtered$Park.Code))
       
     })
     
+    #print state
     output$state <- renderPrint({
       cat(paste("State(s): ", park_filtered$State))
       
     })
     
+    #print park acreage
     output$acres <- renderPrint({
       cat(paste("Acres: ", park_filtered$Acres))
       
     })
     
+    #filter species dataframe by the selected park
     species_filtered_park <- species |> 
       filter(Park.Name == input$park_choice_input)
     
+    #summarizes species categories
     park_category <- species_filtered_park |> 
       group_by(Category) |> 
       summarize(count = n())
     
+    #summarizes species nativeness
     park_nativeness <- species_filtered_park |> 
       group_by(Nativeness) |> 
       summarize(count = n())
     
+    #plots animal categories pie chart for selected park
     output$park_category <- renderPlot({
       ggplot(park_category, aes(x = "", y = count, fill = Category)) +
         geom_bar(stat = "identity", aes(fill = Category)) +
@@ -168,6 +179,7 @@ server <- function(input, output) {
         ylab("") + xlab("")
     })
       
+    #plots animal nativeness pie chart for selected park
     output$park_nativeness <- renderPlot({
       ggplot(park_nativeness, aes(x = "", y = count, fill = Nativeness)) +
         geom_bar(stat = "identity", aes(fill = Nativeness)) +
@@ -179,5 +191,5 @@ server <- function(input, output) {
 
 }
 
-# Run the application 
+#run the application 
 shinyApp(ui = ui, server = server)
