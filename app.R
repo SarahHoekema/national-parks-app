@@ -6,6 +6,7 @@ library(leaflet)
 library(DT)
 library(tidyr)
 library(dplyr)
+library(viridis)
 
 #read in park and species tables
 parks <- read.csv("parks.csv", header=TRUE)
@@ -109,7 +110,15 @@ server <- function(input, output) {
     species_filtered_map <- species |> 
       filter(Park.Name == park_name) |> 
       filter(Conservation.Status %in% input$status) |> 
-      select(Common.Names, Category, Order, Conservation.Status)
+      select(Scientific.Name, Common.Names, Category, Conservation.Status)
+    
+    species_renamed <- species_filtered_map |> 
+      rename("Scientific Name" = Scientific.Name,
+             "Common Names" = Common.Names,
+             "Conservation Status" = Conservation.Status)
+    
+    #get number of rows in dataframe
+    rows <- nrow(species_filtered_map)
     
     #get counts for category
     map_category <- species_filtered_map |> 
@@ -118,16 +127,18 @@ server <- function(input, output) {
 
     #outputs data table of selected species
     output$data_table <- renderDataTable({
-      datatable(species_filtered_map)})
+      datatable(species_renamed)})
 
     #plots animal categories pie chart for conservation map
-    output$conservation_category <- renderPlot({
-      ggplot(map_category, aes(x = "", y = count, fill = Category)) +
-        geom_bar(stat = "identity", aes(fill = Category)) +
-        coord_polar(theta = "y") +
-        labs(title = "Category") +
-        ylab("") + xlab("")
-    })
+    if (rows != 0) {
+      output$conservation_category <- renderPlot({
+        ggplot(map_category, aes(x = "", y = count, fill = Category)) +
+          geom_bar(stat = "identity", aes(fill = Category)) +
+          coord_polar(theta = "y") +
+          labs(title = "Category") +
+          ylab("") + xlab("")
+      })
+    }
   })
   
   #shows output if park is selected
