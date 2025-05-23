@@ -78,22 +78,26 @@ ui <- fluidPage(
                )
       )
     ),
+    #create park comparison tab
     tabPanel("Park Comparison",
       fluidRow(
         #selectable list for parks
-        selectizeInput("park_choice_input",
+        selectizeInput("park_comparison_input",
                        "Choose park(s):",
                        choices = parks$Park.Name,
                        multiple = TRUE,
                        options = list(
+                        maxItems = 7,
                         placeholder = "-Select from options-",
                         onInitialize = I("function() { this.setValue(''); }")
                        )
         ),
         fluidRow(
           column(6,
+                 #outputs acreage comparison plot
                  plotOutput("comparison_acreage")),
           column(6,
+                 #outputs species count comparison plot
                  plotOutput("comparison_species_count"))
         )
       )
@@ -229,8 +233,50 @@ server <- function(input, output) {
              subtitle = "The nativeness of each species for the selected park") +
         ylab("") + xlab("")
     })
+    
   })
-
+  
+  observeEvent({input$park_comparison_input}, {
+    req(input$park_comparison_input)
+    
+    #filter park dataframe for selected parks
+    parks_comparison_selected <- parks |> 
+      filter(Park.Name %in% input$park_comparison_input)
+    
+    #plot acreage bar chart
+    output$comparison_acreage <- renderPlot({
+      ggplot(parks_comparison_selected, aes(x = Park.Name, y = Acres)) +
+        geom_bar(stat = "identity", aes(fill = Park.Name)) +
+        scale_fill_viridis(discrete = TRUE) +
+        theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+        labs(title = "Acreage per park",
+             subtitle = "A comparison of acreage between the selected parks",
+             x = "Park Name",
+             y = "Acres",
+             fill = "Park Name")
+    })
+    
+    #filter species dataframe for selected parks and calculate species count
+    species_count <- species |> 
+      filter(Park.Name %in% input$park_comparison_input) |> 
+      group_by(Park.Name) |> 
+      summarize(Count = n())
+    
+    #plot species count bar chart
+    output$comparison_species_count <- renderPlot({
+      ggplot(species_count, aes(x = Park.Name, y = Count)) +
+        geom_bar(stat = "identity", aes(fill = Park.Name)) +
+        scale_fill_viridis(discrete = TRUE) +
+        theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+        labs(title = "Species per park",
+             subtitle = "A comparison of number of species between the selected parks",
+             x = "Park Name",
+             y = "Species Count",
+             fill = "Park Name")
+    })
+      
+  })
+    
 }
 
 #run the application 
