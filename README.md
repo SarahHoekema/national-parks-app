@@ -7,3 +7,5 @@ The user can select a national park from an interactive map and filter species b
 The user can search for and select a national park and information and visualizations on the park will be displayed.
 ### Park Comparison
 The user can select up to 7 national parks and view visualizations comparing different information from the selected parks.
+
+The app can be accessed online [here](https://sarahhoekema.shinyapps.io/us_national_parks/)
