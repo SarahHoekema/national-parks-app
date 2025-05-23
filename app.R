@@ -77,6 +77,26 @@ ui <- fluidPage(
                plotOutput("park_nativeness")
                )
       )
+    ),
+    tabPanel("Park Comparison",
+      fluidRow(
+        #selectable list for parks
+        selectizeInput("park_choice_input",
+                       "Choose park(s):",
+                       choices = parks$Park.Name,
+                       multiple = TRUE,
+                       options = list(
+                        placeholder = "-Select from options-",
+                        onInitialize = I("function() { this.setValue(''); }")
+                       )
+        ),
+        fluidRow(
+          column(6,
+                 plotOutput("comparison_acreage")),
+          column(6,
+                 plotOutput("comparison_species_count"))
+        )
+      )
     )
   )
 )
@@ -112,6 +132,7 @@ server <- function(input, output) {
       filter(Conservation.Status %in% input$status) |> 
       select(Scientific.Name, Common.Names, Category, Conservation.Status)
     
+    #rename columns in filtered species dataframe
     species_renamed <- species_filtered_map |> 
       rename("Scientific Name" = Scientific.Name,
              "Common Names" = Common.Names,
@@ -135,7 +156,9 @@ server <- function(input, output) {
         ggplot(map_category, aes(x = "", y = count, fill = Category)) +
           geom_bar(stat = "identity", aes(fill = Category)) +
           coord_polar(theta = "y") +
-          labs(title = "Category") +
+          scale_fill_viridis(discrete=TRUE) +
+          labs(title = "Species Category",
+               subtitle = "The categories each species falls in for the selected conservation status") +
           ylab("") + xlab("")
       })
     }
@@ -176,17 +199,23 @@ server <- function(input, output) {
       group_by(Category) |> 
       summarize(count = n())
     
+    #remove empty nativeness rows
+    park_nativeness_cleaned <- species_filtered_park[!(species_filtered_park$Nativeness == ""), ]
+    park_nativeness_cleaned
+    
     #summarizes species nativeness
-    park_nativeness <- species_filtered_park |> 
+    park_nativeness <- park_nativeness_cleaned |> 
       group_by(Nativeness) |> 
-      summarize(count = n())
+      summarize(count = n()) 
     
     #plots animal categories pie chart for selected park
     output$park_category <- renderPlot({
       ggplot(park_category, aes(x = "", y = count, fill = Category)) +
         geom_bar(stat = "identity", aes(fill = Category)) +
         coord_polar(theta = "y") +
-        labs(title = "Category for species in park") +
+        scale_fill_viridis(discrete=TRUE) +
+        labs(title = "Species Category",
+             subtitle = "The categories each species falls in for the selected park") +
         ylab("") + xlab("")
     })
       
@@ -195,7 +224,9 @@ server <- function(input, output) {
       ggplot(park_nativeness, aes(x = "", y = count, fill = Nativeness)) +
         geom_bar(stat = "identity", aes(fill = Nativeness)) +
         coord_polar(theta = "y") +
-        labs(title = "Nativeness for species in park") +
+        scale_fill_viridis(discrete=TRUE) +
+        labs(title = "Species Nativeness",
+             subtitle = "The nativeness of each species for the selected park") +
         ylab("") + xlab("")
     })
   })
