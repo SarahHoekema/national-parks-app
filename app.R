@@ -23,6 +23,9 @@ ui <- fluidPage(
       sidebarLayout(
         #create sidebar
         sidebarPanel(
+          #output map help text
+          textOutput("map_help"),
+          br(),
           #checkboxes for conservation status
           checkboxGroupInput("status",
                              "Conservation Status",
@@ -107,6 +110,12 @@ ui <- fluidPage(
 
 
 server <- function(input, output) {
+  
+  output$map_help <- renderPrint({
+    cat("Click on a marker to select a park and scroll down to view conservation information")
+    
+  })
+  
   #creates reactive map of national parks
   output$map <- renderLeaflet({
     leaflet() |> 
