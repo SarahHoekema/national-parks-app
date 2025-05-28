@@ -102,6 +102,10 @@ ui <- fluidPage(
           column(6,
                  #outputs species count comparison plot
                  plotOutput("comparison_species_count"))
+        ),
+        fluidRow(
+          #outputs acreage vs species scatterplot
+          plotOutput("acreage_vs_species")
         )
       )
     )
@@ -282,6 +286,23 @@ server <- function(input, output) {
              x = "Park Name",
              y = "Species Count",
              fill = "Park Name")
+    })
+    
+    #adds species count column to park dataframe
+    total_grouped <- parks_comparison_selected
+    total_grouped$Count <- species_count$Count
+    
+    #plot acreage vs species scatterplot
+    output$acreage_vs_species <- renderPlot({
+      ggplot(total_grouped, aes(x = Acres, y = Count)) +
+        geom_point(aes(color = Park.Name, size = 10)) +
+        scale_color_viridis(discrete = TRUE) +
+        labs(title = "Acreage vs. species count per park",
+             subtitle = "A comparison of acreages and species between the selected parks",
+             x = "Acreage",
+             y = "Species Count",
+             fill = "Park Name") +
+        guides(size = "none")
     })
       
   })
