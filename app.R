@@ -127,7 +127,7 @@ server <- function(input, output) {
         lat = ~Latitude,
         layerId = ~Park.Name,
         radius = 4,
-        color = "darkgreen",
+        color = "darkcyan",
         fillOpacity = 0.7,
         popup = ~paste(Park.Name)
       )
